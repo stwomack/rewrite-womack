@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yourorg;
+package com.womack;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
@@ -23,11 +23,11 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-class AssertEqualsToAssertThatTest implements RewriteTest {
+class UppercaseAllStringLiteralsTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new AssertEqualsToAssertThat())
+        spec.recipe(new UppercaseAllStringLiterals())
           .parser(JavaParser.fromJavaVersion()
             .classpath("junit-jupiter-api"));
     }

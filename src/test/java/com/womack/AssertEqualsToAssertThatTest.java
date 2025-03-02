@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.yourorg;
+package com.womack;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
@@ -23,36 +23,36 @@ import org.openrewrite.test.RewriteTest;
 
 import static org.openrewrite.java.Assertions.java;
 
-class UseApacheStringUtilsTest implements RewriteTest {
+class AssertEqualsToAssertThatTest implements RewriteTest {
+
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipeFromResources("com.yourorg.UseApacheStringUtils")
-          // Notice how we only pass in `spring-core` as the classpath, but not `commons-lang3`.
-          // That's because we only need dependencies to compile the before code blocks, not the after code blocks.
-          .parser(JavaParser.fromJavaVersion().classpath("spring-core"));
+        spec.recipe(new AssertEqualsToAssertThat())
+          .parser(JavaParser.fromJavaVersion()
+            .classpath("junit-jupiter-api"));
     }
 
     @DocumentExample
     @Test
-    void replacesStringEquals() {
+    void twoArgument() {
         rewriteRun(
           //language=java
           java(
             """
-              import org.springframework.util.StringUtils;
-
+              import org.junit.jupiter.api.Assertions;
+              
               class A {
-                  boolean test(String s) {
-                      return StringUtils.containsWhitespace(s);
+                  void foo() {
+                      Assertions.assertEquals(1, 2);
                   }
               }
               """,
             """
-              import org.apache.commons.lang3.StringUtils;
-
+              import org.assertj.core.api.Assertions;
+              
               class A {
-                  boolean test(String s) {
-                      return StringUtils.containsWhitespace(s);
+                  void foo() {
+                      Assertions.assertThat(2).isEqualTo(1);
                   }
               }
               """
@@ -61,22 +61,28 @@ class UseApacheStringUtilsTest implements RewriteTest {
     }
 
     @Test
-    void noChangeWhenAlreadyUsingCommonsLang3() {
+    void withDescription() {
         rewriteRun(
-          // By passing in `commons-lang3` as the classpath here, we ensure that the before code block compiles.
-          spec -> spec.parser(JavaParser.fromJavaVersion().classpath("commons-lang3")),
           //language=java
           java(
             """
-              import org.apache.commons.lang3.StringUtils;
-
+              import org.junit.jupiter.api.Assertions;
+              
               class A {
-                  boolean test(String s) {
-                      return StringUtils.containsWhitespace(s);
+                  void foo() {
+                      Assertions.assertEquals(1, 2, "one equals two, everyone knows that");
+                  }
+              }
+              """,
+            """
+              import org.assertj.core.api.Assertions;
+              
+              class A {
+                  void foo() {
+                      Assertions.assertThat(2).as("one equals two, everyone knows that").isEqualTo(1);
                   }
               }
               """
-            // The absence of a second argument to `java` indicates that the after code block should be the same as the before code block.
           )
         );
     }
