@@ -2,65 +2,49 @@ package com.womack;
 
 import org.openrewrite.*;
 import org.openrewrite.java.JavaIsoVisitor;
-import org.openrewrite.java.JavaParser;
-import org.openrewrite.java.JavaTemplate;
-import org.openrewrite.java.MethodMatcher;
-import org.openrewrite.java.search.UsesType;
-import org.openrewrite.java.tree.Expression;
 import org.openrewrite.java.tree.J;
-
-import java.util.List;
+import org.openrewrite.java.tree.JavaType;
 
 public class UppercaseAllStringLiterals extends Recipe {
-    private static final MethodMatcher MATCHER = new MethodMatcher("org.junit.jupiter.api.Assertions assertEquals(..)");
-
     @Override
-    public @NlsRewrite.DisplayName String getDisplayName() {
-        return "Uppercase Everything";
+    public String getDisplayName() {
+        return "Uppercase `String` literal";
     }
 
     @Override
-    public @NlsRewrite.Description String getDescription() {
-        return "This will take every string literal and uppercase it.";
+    public String getDescription() {
+        return "Replace the value of a complete `String` literal.";
     }
 
     @Override
     public TreeVisitor<?, ExecutionContext> getVisitor() {
-        return Preconditions.check(new UsesType<>("org.junit.jupiter.api.Assertions", null),
-                new JavaIsoVisitor<ExecutionContext>() {
-                    @Override
-                    public J.MethodInvocation visitMethodInvocation(J.MethodInvocation method, ExecutionContext ctx) {
-                        J.MethodInvocation m = super.visitMethodInvocation(method, ctx);
-                        if (!MATCHER.matches(m)) {
-                            return m;
-                        }
-                        List<Expression> arguments = m.getArguments();
-                        maybeAddImport("org.assertj.core.api.Assertions");
-                        maybeRemoveImport("org.junit.jupiter.api.Assertions");
-                        if (arguments.size() == 2) {
-                            Expression expected = arguments.get(0);
-                            Expression actual = arguments.get(1);
+        return new JavaIsoVisitor<ExecutionContext>() {
+            @Override
+            public J.Literal visitLiteral(J.Literal literal, ExecutionContext ctx) {
+                J.Literal lit = super.visitLiteral(literal, ctx);
+                if (lit.getType() == JavaType.Primitive.String) {
+                    String originalValue = lit.getValue().toString();
+                    String originalValueSource = lit.getValueSource();
+                    String upperCaseValue = originalValue.toUpperCase();
+                    String upperCaseValueSource = '"' + upperCaseValue + '"';
 
-                            m = JavaTemplate.builder("Assertions.assertThat(#{any()}).isEqualTo(#{any()})")
-                                    .imports("org.assertj.core.api.Assertions")
-                                    .javaParser(JavaParser.fromJavaVersion()
-                                            .classpath("assertj-core"))
-                                    .build()
-                                    .apply(getCursor(), m.getCoordinates().replace(), actual, expected);
-                        } else if (arguments.size() == 3) {
-                            Expression expected = arguments.get(0);
-                            Expression actual = arguments.get(1);
-                            Expression description = arguments.get(2);
+                    System.out.println("Original Value Source: " + originalValueSource);
+                    System.out.println("New Value Source: " + upperCaseValueSource);
 
-                            m = JavaTemplate.builder("Assertions.assertThat(#{any()}).as(#{any()}).isEqualTo(#{any()})")
-                                    .imports("org.assertj.core.api.Assertions")
-                                    .javaParser(JavaParser.fromJavaVersion()
-                                            .classpath("assertj-core"))
-                                    .build()
-                                    .apply(getCursor(), m.getCoordinates().replace(), actual, description, expected);
-                        }
-                        return m;
+                    J.Literal transformed = lit
+                            .withValue(upperCaseValue)
+                            .withValueSource(upperCaseValueSource);
+
+                    String transformedValueSource = transformed.getValueSource();
+                    System.out.println("Transformed Value Source: " + transformedValueSource);
+
+                    assert originalValueSource != null;
+                    if (!originalValueSource.equals(transformedValueSource)) {
+                        return transformed;
                     }
-                });
+                }
+                return lit;
+            }
+        };
     }
 }

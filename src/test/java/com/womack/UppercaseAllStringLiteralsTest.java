@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 the original author or authors.
+ * Copyright 2025 the original author or authors.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@ package com.womack;
 
 import org.junit.jupiter.api.Test;
 import org.openrewrite.DocumentExample;
-import org.openrewrite.java.JavaParser;
 import org.openrewrite.test.RecipeSpec;
 import org.openrewrite.test.RewriteTest;
 
@@ -27,63 +26,45 @@ class UppercaseAllStringLiteralsTest implements RewriteTest {
 
     @Override
     public void defaults(RecipeSpec spec) {
-        spec.recipe(new UppercaseAllStringLiterals())
-          .parser(JavaParser.fromJavaVersion()
-            .classpath("junit-jupiter-api"));
+        spec.recipe(new UppercaseAllStringLiterals());
     }
 
     @DocumentExample
     @Test
-    void twoArgument() {
+    void replaceAppleWithAPPLE() {
         rewriteRun(
-          //language=java
           java(
             """
-              import org.junit.jupiter.api.Assertions;
-              
-              class A {
-                  void foo() {
-                      Assertions.assertEquals(1, 2);
-                  }
+              class Test {
+                  String s = "Apple";
               }
               """,
             """
-              import org.assertj.core.api.Assertions;
-              
-              class A {
-                  void foo() {
-                      Assertions.assertThat(2).isEqualTo(1);
-                  }
+              class Test {
+                  String s = "APPLE";
+              }
+              """
+          )
+        );
+    }
+    @Test
+    void replaceJanky() {
+        rewriteRun(
+          java(
+            """
+              class Test {
+                 // We only match the full String literal value
+                 String s = "jAnKy";
+              }
+              """,
+            """
+              class Test {
+                 // We only match the full String literal value
+                 String s = "JANKY";
               }
               """
           )
         );
     }
 
-    @Test
-    void withDescription() {
-        rewriteRun(
-          //language=java
-          java(
-            """
-              import org.junit.jupiter.api.Assertions;
-              
-              class A {
-                  void foo() {
-                      Assertions.assertEquals(1, 2, "one equals two, everyone knows that");
-                  }
-              }
-              """,
-            """
-              import org.assertj.core.api.Assertions;
-              
-              class A {
-                  void foo() {
-                      Assertions.assertThat(2).as("one equals two, everyone knows that").isEqualTo(1);
-                  }
-              }
-              """
-          )
-        );
-    }
 }
