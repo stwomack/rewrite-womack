@@ -67,7 +67,7 @@ class UppercaseAllStringLiteralsTest implements RewriteTest {
         );
     }
     @Test
-    void findInstanceOf() {
+    void longVersion() {
         rewriteRun(
           java(
             """
@@ -112,14 +112,14 @@ class UppercaseAllStringLiteralsTest implements RewriteTest {
               import org.openrewrite.*;
               
               public class YoloClass {
-                  static String thisString = "this is a string";
-                  String otherString = "ThIS iS A sTrinG";
+                  static String thisString = "THIS IS A STRING";
+                  String otherString = "THIS IS A STRING";
               
                   public void doStuff() {
                       SteveRecipe steveRecipe = new SteveRecipe();
               
                       if (steveRecipe instanceof Recipe) {
-                          System.out.println("yep");
+                          System.out.println("YEP");
                       }
                   }
               }
@@ -127,12 +127,12 @@ class UppercaseAllStringLiteralsTest implements RewriteTest {
               class SteveRecipe extends Recipe {
                   @Override
                   public String getDisplayName() {
-                      return "Append to release notes";
+                      return "APPEND TO RELEASE NOTES";
                   }
               
                   @Override
                   public String getDescription() {
-                      return "Adds the specified line to RELEASE.md.";
+                      return "ADDS THE SPECIFIED LINE TO RELEASE.MD.";
                   }
               
                   // The shared state between the scanner and the visitor. The custom class ensures we can easily extend the recipe.
