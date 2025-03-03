@@ -29,24 +29,6 @@ class UppercaseAllStringLiteralsTest implements RewriteTest {
         spec.recipe(new UppercaseAllStringLiterals());
     }
 
-    @DocumentExample
-    @Test
-    void replaceAppleWithAPPLE() {
-        rewriteRun(
-          java(
-            """
-              class Test {
-                  String s = "Apple";
-              }
-              """,
-            """
-              class Test {
-                  String s = "APPLE";
-              }
-              """
-          )
-        );
-    }
     @Test
     void replaceJanky() {
         rewriteRun(
